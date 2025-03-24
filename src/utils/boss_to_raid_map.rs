@@ -38,8 +38,10 @@ pub fn boss_to_raid_map(boss: &str, max_hp: i64) -> String {
 
 #[cfg(test)]
 mod tests {
-    
+    use super::*;
+
     #[test]
-    fn test() {
+    fn should_return_raid_name() {
+        assert_eq!("Phantom Manifester Brelshaza", boss_to_raid_map("Act 2: Brelshaza G2", 100_000_000_000));
     }
 }

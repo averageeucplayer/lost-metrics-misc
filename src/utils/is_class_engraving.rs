@@ -34,8 +34,17 @@ pub fn is_class_engraving(class_id: u32, engraving_id: u32) -> bool {
 
 #[cfg(test)]
 mod tests {
-    
+    use super::*;
+
     #[test]
-    fn test() {
+    fn should_return_true() {
+        let valid = is_class_engraving(102, 125);
+        assert!(valid)
+    }
+
+    #[test]
+    fn should_return_false() {
+        let valid = is_class_engraving(102, 126);
+        assert!(!valid)
     }
 }
