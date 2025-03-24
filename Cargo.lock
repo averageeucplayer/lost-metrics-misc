@@ -376,7 +376,7 @@ dependencies = [
 [[package]]
 name = "lost-metrics-core"
 version = "0.1.0"
-source = "git+https://github.com/averageeucplayer/lost-metrics-core?branch=main#56fd4f4d99d0335123db8d412965754b9a822093"
+source = "git+https://github.com/averageeucplayer/lost-metrics-core?branch=main#fa90f1bee373e902981ccdf13900ebaa3a9b5b25"
 dependencies = [
  "bitflags",
  "chrono",
@@ -392,7 +392,7 @@ dependencies = [
 [[package]]
 name = "lost-metrics-data"
 version = "0.1.0"
-source = "git+https://github.com/averageeucplayer/lost-metrics-data?branch=main#e3af0b8cdf40a11b3453965c6e9d072c05141293"
+source = "git+https://github.com/averageeucplayer/lost-metrics-data?branch=main#38c5d02b6702cbb6761537294c5042cce36d7a14"
 dependencies = [
  "hashbrown 0.15.2",
  "lost-metrics-core",
@@ -413,6 +413,8 @@ dependencies = [
  "moka",
  "serde",
  "serde_json",
+ "strum",
+ "strum_macros",
 ]
 
 [[package]]
