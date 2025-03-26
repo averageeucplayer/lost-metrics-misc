@@ -41,7 +41,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn should_handle_old_brelshaza() {
+        assert_eq!("Brelshaza G6", boss_to_raid_map("Phantom Legion Commander Brelshaza", 100_000_000_00));
+    }
+
+    #[test]
     fn should_return_raid_name() {
-        assert_eq!("Phantom Manifester Brelshaza", boss_to_raid_map("Act 2: Brelshaza G2", 100_000_000_000));
+        assert_eq!("Act 2: Brelshaza G2", boss_to_raid_map("Phantom Manifester Brelshaza", 100_000_000_001));
     }
 }

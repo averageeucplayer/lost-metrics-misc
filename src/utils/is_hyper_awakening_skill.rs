@@ -34,8 +34,15 @@ pub fn is_hyper_awakening_skill(skill_id: u32) -> bool {
 
 #[cfg(test)]
 mod tests {
-    
+    use super::*;
+
     #[test]
-    fn test() {
+    fn should_return_false() {
+        assert!(!is_hyper_awakening_skill(1));
+    }
+
+    #[test]
+    fn should_return_true() {
+        assert!(is_hyper_awakening_skill(16720));
     }
 }

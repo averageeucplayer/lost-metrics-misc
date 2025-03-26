@@ -187,8 +187,15 @@ pub fn get_status_effect_buff_type_flags(buff: &SkillBuffData) -> u32 {
 
 #[cfg(test)]
 mod tests {
-    
+    use lost_metrics_data::SKILL_BUFF_DATA;
+
+    use super::*;
+
     #[test]
-    fn test() {
+    fn should_have_dmg_bits() {
+        let buff_id = 2000362;
+        let buff = SKILL_BUFF_DATA.get(&buff_id).unwrap();
+        let bits = get_status_effect_buff_type_flags(buff);
+        assert_eq!(bits, 1);
     }
 }

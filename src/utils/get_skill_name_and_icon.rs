@@ -94,8 +94,92 @@ pub fn get_skill_name_and_icon(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    #[test]
+    fn should_return_bleed_skill() {
+        let skill_info = get_skill_name_and_icon(&0, &0, "".into(), &Cache::new(0), 0);
+
+        assert_eq!(skill_info.0, "Bleed");
+    }
+
+    #[test]
+    fn should_return_consumable_skill() {
+        let skill_info = get_skill_name_and_icon(&9099, &9099, "".into(), &Cache::new(0), 0);
+
+        assert_eq!(skill_info.0, "Peach Wine");
+    }
+
+    #[test]
+    fn should_return_main_skill() {
+        let skill_info = get_skill_name_and_icon(&170300, &170300, "".into(), &Cache::new(0), 0);
+
+        assert_eq!(skill_info.0, "Sharp Gunlance");
+    }
+
+    #[test]
+    fn should_return_related_div10_skill() {
+
+        // for (id, sed) in SKILL_EFFECT_DATA.iter() {
+        //     let custom_id = id / 10;
+            
+        //     if SKILL_DATA.get(&custom_id).filter(|sk| sk.name.is_some()).is_some() {
+        //         println!("{id} - {custom_id}");
+        //     }
+        // }
+
+        let skill_info = get_skill_name_and_icon(&471802, &471802, "".into(), &Cache::new(0), 0);
+
+        assert_eq!(skill_info.0, "Punishing Wave");
+    }
+
+    #[test]
+    fn should_return_cached_summon_source_skill() {
+        let cache: Cache<(u64, u32), i64> = Cache::new(0);
+        cache.insert((0, 20090), 1);
+        let skill_info = get_skill_name_and_icon(&20095, &0, "".into(), &cache, 0);
+
+        assert_eq!(skill_info.0, "Elcid (Summon)");
+    }
+
+    #[test]
+    fn should_return_summon_source_skill() {
+        let cache: Cache<(u64, u32), i64> = Cache::new(0);
+        let skill_info = get_skill_name_and_icon(&20291, &0, "".into(), &cache, 0);
+
+        assert_eq!(skill_info.0, "Kelsion (Summon)");
+    }
+
+    #[test]
+    fn should_return_source_skill() {
+        let cache: Cache<(u64, u32), i64> = Cache::new(0);
+        let skill_info = get_skill_name_and_icon(&24280, &0, "".into(), &cache, 0);
+
+        assert_eq!(skill_info.0, "Weapon Attack");
+    }
     
     #[test]
-    fn test() {
+    fn should_return_skill() {
+        let cache: Cache<(u64, u32), i64> = Cache::new(0);
+        let skill_info = get_skill_name_and_icon(&17140, &0, "".into(), &cache, 0);
+
+        assert_eq!(skill_info.0, "Guardian's Thundercrack");
     }
+     
+    #[test]
+    fn should_return_related_mod10_skill() {
+        
+        // for skill_id in 1..100000 {
+        //     let custom_id = skill_id - (skill_id % 10);
+        //     if let Some(skill) = SKILL_DATA.get(&custom_id).filter(|sk| sk.name.is_some()) {
+        //         println!("{:?} {skill_id} - {custom_id}", skill.name);
+        //     }
+        // }
+
+        let cache: Cache<(u64, u32), i64> = Cache::new(0);
+        let skill_info = get_skill_name_and_icon(&47109, &0, "".into(), &cache, 0);
+
+        assert_eq!(skill_info.0, "Brawl King's Advance");
+    }
+   
 }

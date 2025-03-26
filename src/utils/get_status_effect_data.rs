@@ -81,3 +81,26 @@ pub fn get_status_effect_data(buff_id: u32, source_skill: Option<u32>) -> Option
 
     Some(status_effect)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn should_return_drops_of_ether_buff() {
+        let status_effect = get_status_effect_data(702, None).unwrap();
+        assert_eq!(status_effect.buff_category, "dropsofether");
+    }
+
+    #[test]
+    fn should_return_self_buff() {
+        let status_effect = get_status_effect_data(391604, None).unwrap();
+        assert_eq!(status_effect.target, StatusEffectTarget::SELF);
+    }
+
+    #[test]
+    fn should_return_party_buff() {
+        let status_effect = get_status_effect_data(500153, None).unwrap();
+        assert_eq!(status_effect.target, StatusEffectTarget::PARTY);
+    }
+}
