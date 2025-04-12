@@ -23,8 +23,23 @@ pub fn calculate_average_dps(data: &[(i64, i64)], start_time: i64, end_time: i64
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
+    use chrono::Utc;
+
+    use super::*;
     
     #[test]
-    fn test() {
+    fn should_return_average_dps() {
+      
+        let now = Utc::now();
+        let start_time = now.timestamp();
+        let data = vec![
+            (start_time, 1e7 as i64),
+            (start_time + 10000, 1e6 as i64)
+        ];
+        let end_time = (now + Duration::from_secs(300)).timestamp();
+        let average_dps = calculate_average_dps(&data, start_time, end_time);
+        assert_eq!(average_dps.first().unwrap(), &11000000);
     }
 }

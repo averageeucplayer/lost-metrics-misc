@@ -2,9 +2,9 @@ use std::mem::transmute;
 
 use strum_macros::{AsRefStr, EnumString};
 
-#[derive(Default, Debug, AsRefStr, PartialEq, EnumString)]
+#[derive(Default, Debug, Copy, Clone, AsRefStr, PartialEq, EnumString)]
 #[repr(u32)]
-pub enum Classes {
+pub enum Class {
     #[default]
     Unknown = 0,
     #[strum(serialize = "Warrior (Male)")]
@@ -51,14 +51,60 @@ pub enum Classes {
     Wildsoul = 604,
 }
 
-impl From<u32> for Classes {
+impl Class {
+    pub fn is_generic(&self) -> bool {
+        matches!(self, Class::GunnerFemale |
+            Class::GunnerMale |
+            Class::MartialArtistMale |
+            Class::MartialArtistFemale |
+            Class::WarriorMale |
+            Class::WarriorFemale |
+            Class::Specialist)
+    }
+
+    pub fn is_support(&self) -> bool {
+        matches!(self, Class::Paladin | Class::Bard | Class::Artist)
+    }
+
+    pub fn get_supports() -> Vec<Class> {
+        vec![Class::Paladin, Class::Bard, Class::Artist]
+    }
+
+    pub fn get_dps() -> Vec<Class> {
+        vec![
+            Class::Berserker,
+            Class::Destroyer,
+            Class::Gunlancer,
+            Class::Slayer,
+            Class::Arcanist,
+            Class::Summoner,
+            Class::Wardancer,
+            Class::Scrapper,
+            Class::Soulfist,
+            Class::Glaivier,
+            Class::Striker,
+            Class::Breaker,
+            Class::Deathblade,
+            Class::Shadowhunter,
+            Class::Reaper,
+            Class::Souleater,
+            Class::Sharpshooter,
+            Class::Deadeye,
+            Class::Artillerist,
+            Class::Machinist,
+            Class::Gunslinger,
+        ]
+    }
+}
+
+impl From<u32> for Class {
     fn from(value: u32) -> Self {
         unsafe { transmute(value) }
     }
 }
 
 pub fn get_class_from_id(class_id: &u32) -> String {
-    let class: Classes = (*class_id).into();
+    let class: Class = (*class_id).into();
     class.as_ref().to_string()
 }
 
