@@ -16,6 +16,7 @@ strum = "0.27"
 strum_macros = "0.27"
 num-traits = "0.2"
 num-derive = "0.4"
+chrono = "0.4.31"
 # lost-metrics-core = { path= "../lost-metrics-core" }
 # lost-metrics-data = { path= "../lost-metrics-data" }
 lost-metrics-core = { git = "https://github.com/averageeucplayer/lost-metrics-core", branch="main" }

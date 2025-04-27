@@ -1,275 +1,273 @@
 use hashbrown::HashMap;
-use lost_metrics_core::models::{EncounterEntity, StatusEffect};
+use lost_metrics_core::models::*;
 
 use super::misc::get_buff_names;
 
-pub fn get_player_spec(player: &EncounterEntity, buffs: &HashMap<u32, StatusEffect>) -> String {
-    if player.skills.len() < 8 {
-        return "Unknown".to_string();
+macro_rules! id {
+    ($e:expr) => {
+        &($e as u32)
+    };
+}
+
+pub fn get_player_spec(
+    class: Class,
+    skills: &HashMap<u32, Skill>,
+    buffed_by: &HashMap<u32, i64>,
+    buffs: &HashMap<u32, StatusEffect>) -> &'static str {
+    if skills.len() < 8 {
+        return "Unknown";
     }
 
-    match player.class.as_str() {
-        "Berserker" => {
-            if player.skills.contains_key(&16140) {
-                "Berserker Technique".to_string()
+    match class {
+        Class::Berserker => {
+            skills
+                .contains_key(id!(BerserkerSkills::BloodyRush))
+                .then(|| "Berserker Technique")
+                .unwrap_or_else(|| "Mayhem")
+        }
+        Class::Destroyer => {
+            skills
+                .contains_key(id!(DestroyerSkills::EarthWave))
+                .then(|| "Gravity Training")
+                .unwrap_or_else(|| "Rage Hammer")
+        }
+        Class::Gunlancer => {
+            if skills.contains_key(id!(GunlancerSkills::SurgeCannon))
+                && skills.contains_key(id!(GunlancerSkills::ChargedStinger)) {
+                "Lone Knight"
+            } else if skills.contains_key(id!(GunlancerSkills::GuardiansThundercrack)) {
+                "Combat Readiness"
             } else {
-                "Mayhem".to_string()
+                "Princess"
             }
         }
-        "Destroyer" => {
-            if player.skills.contains_key(&18090) {
-                "Gravity Training".to_string()
-            } else {
-                "Rage Hammer".to_string()
-            }
+        Class::Paladin => {
+            (skills.contains_key(id!(PaladinSkills::LightShock))
+                || skills.contains_key(id!(PaladinSkills::SwordOfJustice))
+                || skills.contains_key(id!(PaladinSkills::GodsDecree))
+                || skills.contains_key(id!(PaladinSkills::HolyExplosion))
+                && skills.contains_key(id!(PaladinSkills::HeavenlyBlessings))
+                && skills.contains_key(id!(PaladinSkills::WrathOfGod)))
+                .then(|| "Blessed Aura")
+                .unwrap_or_else(|| "Judgement")
         }
-        "Gunlancer" => {
-            if player.skills.contains_key(&17200) && player.skills.contains_key(&17210) {
-                "Lone Knight".to_string()
-            } else if player.skills.contains_key(&17140) {
-                "Combat Readiness".to_string()
-            } else {
-                "Princess".to_string()
-            }
+        Class::Slayer => {
+            skills
+                .contains_key(id!(SlayerSkills::Bloodlust))
+                .then(|| "Punisher")
+                .unwrap_or_else(|| "Predator")
         }
-        "Paladin" => {
-            if (player.skills.contains_key(&36050)
-                || player.skills.contains_key(&36080)
-                || player.skills.contains_key(&36150)
-                || player.skills.contains_key(&36100))
-                && player.skills.contains_key(&36200)
-                && player.skills.contains_key(&36170)
-            {
-                "Blessed Aura".to_string()
-            } else {
-                "Judgement".to_string()
-            }
+        Class::Arcanist => {
+            skills
+                .contains_key(id!(ArcanistSkills::Emperor))
+                .then(|| "Order of the Emperor")
+                .unwrap_or_else(|| "Grace of the Empress")
         }
-        "Slayer" => {
-            if player.skills.contains_key(&45004) {
-                "Punisher".to_string()
-            } else {
-                "Predator".to_string()
-            }
-        }
-        "Arcanist" => {
-            if player.skills.contains_key(&19282) {
-                "Order of the Emperor".to_string()
-            } else {
-                "Grace of the Empress".to_string()
-            }
-        }
-        "Summoner" => {
-            if player
-                .skills
-                .iter()
+        Class::Summoner => {
+            skills.iter()
                 .any(|(_, skill)| skill.name.contains("Kelsion"))
-            {
-                "Communication Overflow".to_string()
-            } else {
-                "Master Summoner".to_string()
-            }
+                .then(|| "Communication Overflow")
+                .unwrap_or_else(|| "Master Summoner")
         }
-        "Bard" => {
-            if player.skills.contains_key(&21250) && player.skills.contains_key(&21080) {
-                "Desperate Salvation".to_string()
-            } else {
-                "True Courage".to_string()
-            }
+        Class::Bard => {
+            ((skills.contains_key(id!(BardSkills::GuardianTune))
+            || skills.contains_key(id!(BardSkills::RhapsodyOfLight))
+            || skills.contains_key(id!(BardSkills::WindOfMusic)))
+            && skills.contains_key(id!(BardSkills::HeavenlyTune)))
+                .then(|| "Desperate Salvation")
+                .unwrap_or_else(|| "True Courage")              
         }
-        "Sorceress" => {
-            if player.skills.contains_key(&37350)
-                && player.skills.contains_key(&37270)
-                && player.skills.contains_key(&37330)
-            {
-                "Igniter".to_string()
-            } else {
-                "Reflux".to_string()
-            }
+        Class::Sorceress => {
+            (skills.contains_key(id!(SorceressSkills::Doomsday))
+                && skills.contains_key(id!(SorceressSkills::PunishingStrike))
+                && skills.contains_key(id!(SorceressSkills::Explosion)))
+                .then(|| "Igniter")
+                .unwrap_or_else(|| "Reflux")
+          
         }
-        "Wardancer" => {
-            if player.skills.contains_key(&22340) {
-                "Esoteric Skill Enhancement".to_string()
-            } else {
-                "First Intention".to_string()
-            }
+        Class::Wardancer => {
+            skills.contains_key(id!(WardancerSkills::EsotericSkillAzureDragonSupremeFist))
+                .then(|| "Esoteric Skill Enhancement")
+                .unwrap_or_else(|| "First Intention")
         }
-        "Scrapper" => {
-            if player.skills.contains_key(&23230) {
-                "Ultimate Skill: Taijutsu".to_string()
-            } else {
-                "Shock Training".to_string()
-            }
+        Class::Scrapper => {
+            skills.contains_key(id!(ScrapperSkills::IronCannonBlow))
+                .then(|| "Ultimate Skill: Taijutsu")
+                .unwrap_or_else(|| "Shock Training")
         }
-        "Soulfist" => {
-            if player.skills.contains_key(&24200) {
-                "Energy Overflow".to_string()
-            } else {
-                "Robust Spirit".to_string()
-            }
+        Class::Soulfist => {
+            skills.contains_key(id!(SoulfistSkills::Shadowbreaker))
+                .then(|| "Energy Overflow")
+                .unwrap_or_else(|| "Robust Spirit")
         }
-        "Glaivier" => {
-            if player.skills.contains_key(&34590) {
-                "Pinnacle".to_string()
-            } else {
-                "Control".to_string()
-            }
+        Class::Glaivier => {
+            skills.contains_key(id!(GlaivierSkills::RedDragonsHorn))
+                .then(|| "Pinnacle")
+                .unwrap_or_else(|| "Control")
         }
-        "Striker" => {
-            if player.skills.contains_key(&39110) {
-                "Esoteric Flurry".to_string()
-            } else {
-                "Deathblow".to_string()
-            }
+        Class::Striker => {
+            skills.contains_key(id!(StrikerSkills::EsotericSkillCallOfTheWindGod))
+                .then(|| "Esoteric Flurry")
+                .unwrap_or_else(|| "Deathblow")
         }
-        "Breaker" => {
-            if player.skills.contains_key(&47020) {
-                "Asura's Path".to_string()
-            } else {
-                "Brawl King Storm".to_string()
-            }
+        Class::Breaker => {
+            skills.contains_key(id!(BreakerSkills::AsuraDestructionBasicAttack))
+                .then(|| "Asura's Path")
+                .unwrap_or_else(|| "Brawl King Storm")
         }
-        "Deathblade" => {
-            if player.skills.contains_key(&25038) {
-                "Surge".to_string()
-            } else {
-                "Remaining Energy".to_string()
-            }
+        Class::Deathblade => {
+            skills.contains_key(id!(DeathbladeSkills::Zero))
+                .then(|| "Surge")
+                .unwrap_or_else(|| "Remaining Energy")
         }
-        "Shadowhunter" => {
-            if player.skills.contains_key(&27860) {
-                "Demonic Impulse".to_string()
-            } else {
-                "Perfect Suppression".to_string()
-            }
+        Class::Shadowhunter => {
+            skills.contains_key(id!(ShadowhunterSkills::BloodMassacre))
+                .then(|| "Demonic Impulse")
+                .unwrap_or_else(|| "Perfect Suppression")
         }
-        "Reaper" => {
-            let buff_names = get_buff_names(player, buffs);
-            if buff_names.iter().any(|s| s.contains("Lunar Voice")) {
-                "Lunar Voice".to_string()
-            } else {
-                "Hunger".to_string()
-            }
+        Class::Reaper => {
+            let buff_names = get_buff_names(buffed_by, buffs);
+            buff_names.iter().any(|s| s.contains("Lunar Voice"))
+                .then(|| "Lunar Voice")
+                .unwrap_or_else(|| "Hunger")
         }
-        "Souleater" => {
-            if player.skills.contains_key(&46250) {
-                "Night's Edge".to_string()
-            } else {
-                "Full Moon Harvester".to_string()
-            }
+        Class::Souleater => {
+            skills.contains_key(id!(SouleaterSkills::LethalSpinning))
+                .then(|| "Night's Edge")
+                .unwrap_or_else(|| "Full Moon Harvester")
         }
-        "Sharpshooter" => {
-            let buff_names = get_buff_names(player, buffs);
-            if buff_names
+        Class::Sharpshooter => {
+            let buff_names = get_buff_names(buffed_by, buffs);
+            buff_names
                 .iter()
                 .any(|s| s.contains("Loyal Companion") || s.contains("Hawk Support"))
-            {
-                "Loyal Companion".to_string()
-            } else {
-                "Death Strike".to_string()
-            }
+                .then(|| "Loyal Companion")
+                .unwrap_or_else(|| "Death Strike")
         }
-        "Deadeye" => {
-            if player.skills.contains_key(&29300) {
-                "Enhanced Weapon".to_string()
-            } else {
-                "Pistoleer".to_string()
-            }
+        Class::Deadeye => {
+            skills.contains_key(id!(DeadeyeSkills::JudgmentDay)) 
+                .then(|| "Enhanced Weapon")
+                .unwrap_or_else(|| "Pistoleer")
         }
-        "Artillerist" => {
-            if player.skills.contains_key(&30260) {
-                "Barrage Enhancement".to_string()
-            } else {
-                "Firepower Enhancement".to_string()
-            }
+        Class::Artillerist => {
+            skills.contains_key(id!(ArtilleristSkills::BarrageFocusFire)) 
+                .then(|| "Barrage Enhancement")
+                .unwrap_or_else(|| "Firepower Enhancement")
         }
-        "Machinist" => {
-            let buff_names = get_buff_names(player, buffs);
-            if buff_names
+        Class::Machinist => {
+            let buff_names = get_buff_names(buffed_by, buffs);
+            buff_names
                 .iter()
                 .any(|s| s.contains("Combat Mode") || s.contains("Evolutionary Legacy"))
-            {
-                "Evolutionary Legacy".to_string()
-            } else {
-                "Arthetinean Skill".to_string()
-            }
+                .then(|| "Evolutionary Legacy")
+                .unwrap_or_else(|| "Arthetinean Skill")
         }
-        "Gunslinger" => {
-            if player.skills.contains_key(&38110) {
-                "Peacemaker".to_string()
-            } else {
-                "Time to Hunt".to_string()
-            }
+        Class::Gunslinger => {
+            skills.contains_key(id!(GunslingerSkills::Sharpshooter)) 
+                .then(|| "Peacemaker")
+                .unwrap_or_else(|| "Time to Hunt")
         }
-        "Artist" => {
-            if player.skills.contains_key(&31400)
-                && player.skills.contains_key(&31410)
-                && player.skills.contains_key(&31420)
-            {
-                "Full Bloom".to_string()
-            } else {
-                "Recurrence".to_string()
-            }
+        Class::Artist => {
+            ((skills.contains_key(id!(ArtistSkills::PaintDrawingOrchids))
+            || skills.contains_key(id!(ArtistSkills::PaintStarryNight))
+            || skills.contains_key(id!(ArtistSkills::PaintIllusionDoor)))
+            && skills.contains_key(id!(ArtistSkills::PaintSunsketch))
+            && skills.contains_key(id!(ArtistSkills::PaintSunWell))
+            && !skills.contains_key(id!(ArtistSkills::PaintCattleDrive)))
+                .then(|| "Full Bloom")
+                .unwrap_or_else(|| "Recurrence")
         }
-        "Aeromancer" => {
-            if player.skills.contains_key(&32250) && player.skills.contains_key(&32260) {
-                "Wind Fury".to_string()
-            } else {
-                "Drizzle".to_string()
-            }
+        Class::Aeromancer => {
+            (skills.contains_key(id!(AeromancerSkills::WindGimlet))
+                && skills.contains_key(id!(AeromancerSkills::PiercingWind)))
+                .then(|| "Wind Fury")
+                .unwrap_or_else(|| "Drizzle")
         }
-        "Wildsoul" => {
-            if player.skills.contains_key(&33400) || player.skills.contains_key(&33410) {
-                "Ferality".to_string()
-            } else {
-                "Phantom Beast Awakening".to_string()
-            }
+        Class::Wildsoul => {
+            (skills.contains_key(id!(WildsoulSkills::ForbiddenSorceryRippingBear))
+                || skills.contains_key(id!(WildsoulSkills::ForbiddenSorceryFoxStarRainstorm)))
+                .then(|| "Ferality")
+                .unwrap_or_else(|| "Phantom Beast Awakening")
         }
-        _ => "Unknown".to_string(),
+        _ => "Unknown",
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use lost_metrics_core::models::Skill;
-
-    use crate::constants::WildsoulSkills;
-
     use super::*;
+    use hashbrown::HashMap;
+    use lost_metrics_core::models::{Class, Skill, StatusEffect};
 
-    fn creater_player_stats(class: String) -> EncounterEntity {
-
-        let mut stats = EncounterEntity {
-            class,
-            skills: hashbrown::HashMap::new(),
-            ..Default::default()
-        };
-
-        for id in 1..=7 {
-            let skill = Skill {
+    fn create_player_skills(skill_ids: Vec<u32>) -> HashMap<u32, Skill> {
+        let mut skills = HashMap::new();
+        for id in 0..=8u32 {
+            let id = *skill_ids.get(id as usize).unwrap_or(&id);
+            skills.insert(
                 id,
-                ..Default::default()    
-            };
-            stats.skills.insert(skill.id, skill);
+                Skill {
+                    id,
+                    ..Default::default()
+                },
+            );
         }
+        skills
+    }
 
-        stats
+    fn create_buffed_by(buffs: Vec<(u32, &'static str)>) -> (HashMap<u32, i64>, HashMap<u32, StatusEffect>) {
+        let mut buffed_by = HashMap::new();
+        let mut buffs_map = HashMap::new();
+        for (id, name) in buffs {
+            buffed_by.insert(id, 1);
+            buffs_map.insert(
+                id,
+                StatusEffect {
+                    source: StatusEffectSource { 
+                        name: name.to_string(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+            );
+        }
+        (buffed_by, buffs_map)
     }
 
     #[test]
-    fn should_return_ferality_for_wildsoul() {
-       
-        let mut player = creater_player_stats("Wildsoul".into());
-        let skill = Skill {
-            id: WildsoulSkills::ForbiddenSorceryRippingBear as u32,
-            ..Default::default()    
-        };
-        player.skills.insert(skill.id, skill);
-
+    fn should_return_berserker_technique_for_berserker() {
+        let skills = create_player_skills(vec![BerserkerSkills::BloodyRush as u32]);
         let buffs: HashMap<u32, StatusEffect> = HashMap::new();
+        let spec = get_player_spec(Class::Berserker, &skills, &HashMap::new(), &buffs);
+        assert_eq!(spec, "Berserker Technique");
+    }
 
-        let spec = get_player_spec(&player, &buffs);
+    #[test]
+    fn should_return_loyal_companion_for_sharpshooter() {
+        let skills = create_player_skills(vec![]);
+        let (buffed_by, buffs) = create_buffed_by(vec![(1000, "Loyal Companion")]);
+        let spec = get_player_spec(Class::Sharpshooter, &skills, &buffed_by, &buffs);
+        assert_eq!(spec, "Loyal Companion");
+    }
 
-        assert_eq!(spec, "Ferality");
+    #[test]
+    fn should_return_evolutionary_legacy_for_machinist() {
+        let skills = create_player_skills(vec![]);
+        let (buffed_by, buffs) = create_buffed_by(vec![(3000, "Evolutionary Legacy")]);
+        let spec = get_player_spec(Class::Machinist, &skills, &buffed_by, &buffs);
+        assert_eq!(spec, "Evolutionary Legacy");
+    }
+
+    #[test]
+    fn should_return_full_bloom_for_artist() {
+        let skills = create_player_skills(vec![
+            ArtistSkills::PaintDrawingOrchids as u32,
+            ArtistSkills::PaintStarryNight as u32,
+            ArtistSkills::PaintIllusionDoor as u32,
+            ArtistSkills::PaintSunsketch as u32,
+            ArtistSkills::PaintSunWell as u32,
+        ]);
+        let buffs: HashMap<u32, StatusEffect> = HashMap::new();
+        let spec = get_player_spec(Class::Artist, &skills, &HashMap::new(), &buffs);
+        assert_eq!(spec, "Full Bloom");
     }
 }

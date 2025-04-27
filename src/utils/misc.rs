@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::io::Write;
+use std::str::FromStr;
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use hashbrown::HashMap;
@@ -13,9 +14,15 @@ use super::{calculate_average_dps, gem_skill_id_to_skill_ids, get_player_spec, g
 use super::is_class_engraving::is_class_engraving;
 
 
-pub fn get_buff_names(player: &EncounterEntity, buffs: &HashMap<u32, StatusEffect>) -> Vec<String> {
+const CDR_PER_SWIFT: f64 = 0.02147;
+
+pub fn swiftness_to_cdr(value: u32) -> u32 {
+    (CDR_PER_SWIFT * value as f64) as u32
+}
+
+pub fn get_buff_names(buffed_by: &HashMap<u32, i64>, buffs: &HashMap<u32, StatusEffect>) -> Vec<String> {
     let mut names = Vec::new();
-    for (id, _) in player.damage_stats.buffed_by.iter() {
+    for (id, _) in buffed_by.iter() {
         if let Some(buff) = buffs.get(id) {
             names.push(buff.source.name.clone());
         }
@@ -144,10 +151,6 @@ pub fn get_engravings(
     } else {
         (class_engravings, Some(sorted_engravings))
     }
-}
-
-pub fn is_support_class_id(class_id: u32) -> bool {
-    class_id == 105 || class_id == 204 || class_id == 602
 }
 
 pub fn is_battle_item(skill_effect_id: &u32, _item_type: &str) -> bool {
@@ -283,14 +286,6 @@ pub fn get_esther_from_npc_id(npc_id: u32) -> Option<Esther> {
         .iter()
         .find(|esther| esther.npc_ids.contains(&npc_id))
         .cloned()
-}
-
-#[cfg(test)]
-mod tests {
-    
-    #[test]
-    fn test() {
-    }
 }
 
 pub const WINDOW_MS: i64 = 5_000;
@@ -539,7 +534,11 @@ pub fn update_player_stats(
             calculate_average_dps(damage_log, fight_start_sec, fight_end_sec);
     }
 
-    let spec = get_player_spec(entity, &encounter_damage_stats.buffs);
+    let spec = get_player_spec(
+        Class::from_str(&entity.class).unwrap(),
+        &entity.skills,
+        &entity.damage_stats.buffed_by,
+        &encounter_damage_stats.buffs).to_string();
 
     entity.spec = Some(spec.clone());
     let player_stats = player_info
@@ -598,5 +597,14 @@ pub fn update_player_stats(
         } else if class.len() == 1 {
             entity.spec = Some(class[0].clone());
         }
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    
+    #[test]
+    fn test() {
     }
 }
